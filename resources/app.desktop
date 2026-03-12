@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=Te Pgd Applet
+Comment=Tabungan Emas Pegadaian price applet for cosmic desktop
+Type=Application
+Icon=com.github.luthfynur.te-pgd-applet
+Exec=te-pgd-applet %F
+Terminal=false
+StartupNotify=true
+Categories=COSMIC
+Keywords=COSMIC
+NoDisplay=true
+X-CosmicApplet=true
+X-CosmicHoverPopup=Auto
+MimeType=
