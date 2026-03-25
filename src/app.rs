@@ -5,6 +5,7 @@ use cosmic::cosmic_config::{self, CosmicConfigEntry};
 use cosmic::iced::{self, Padding};
 use cosmic::iced::{Subscription, window::Id};
 use cosmic::prelude::*;
+use cosmic::widget::mouse_area;
 use reqwest::Client;
 use serde::Deserialize;
 use std::time::Duration;
@@ -20,6 +21,7 @@ pub struct AppModel {
     /// Configuration data that persists between application runs.
     config: Config,
     price: String,
+    is_random_wallpaper: bool,
 }
 
 /// Messages emitted by the application and its widgets.
@@ -29,6 +31,8 @@ pub enum Message {
     UpdateConfig(Config),
     UpdatePrice(String),
     FetchPrice,
+    SetRandomWallpaper,
+    ToggleRandomWallpaper,
 }
 
 /// Create a COSMIC application from the app model
@@ -73,9 +77,9 @@ impl cosmic::Application for AppModel {
                 })
                 .unwrap_or_default(),
             price: "Memuat harga tabungan emas...".to_string(),
+            is_random_wallpaper: true,
             ..Default::default()
         };
-
         (
             app,
             Task::perform(get_price(), |res| {
@@ -106,6 +110,7 @@ impl cosmic::Application for AppModel {
                     Message::UpdateConfig(update.config)
                 }),
             iced::time::every(Duration::from_secs(300)).map(|_| Message::FetchPrice),
+            iced::time::every(Duration::from_secs(1)).map(|_| Message::SetRandomWallpaper),
         ])
     }
 
@@ -125,11 +130,26 @@ impl cosmic::Application for AppModel {
                 }
             }
             Message::FetchPrice => {
+                self.price = "Memuat harga...".into();
                 return Task::perform(get_price(), |res| {
                     cosmic::Action::App(Message::UpdatePrice(res))
                 });
             }
             Message::UpdatePrice(price) => self.price = price,
+            Message::SetRandomWallpaper => {
+                if self.is_random_wallpaper {
+                    let result = std::process::Command::new("waypaper")
+                        .arg("--random")
+                        .output();
+                    match result {
+                        Ok(_) => {}
+                        Err(err) => println!("{}", err),
+                    }
+                }
+            }
+            Message::ToggleRandomWallpaper => {
+                self.is_random_wallpaper = !self.is_random_wallpaper;
+            }
         }
         Task::none()
     }
@@ -148,7 +168,10 @@ impl cosmic::Application for AppModel {
                 left: 5.0,
                 right: 5.0,
             });
-        self.core.applet.autosize_window(container).into()
+        let mouse_area = mouse_area(container)
+            .on_double_press(Message::ToggleRandomWallpaper)
+            .on_press(Message::FetchPrice);
+        self.core.applet.autosize_window(mouse_area).into()
     }
 
     fn style(&self) -> Option<cosmic::iced::theme::Style> {
