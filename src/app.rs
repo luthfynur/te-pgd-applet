@@ -77,7 +77,7 @@ impl cosmic::Application for AppModel {
                 })
                 .unwrap_or_default(),
             price: "Memuat harga tabungan emas...".to_string(),
-            is_random_wallpaper: true,
+            is_random_wallpaper: false,
             ..Default::default()
         };
         (
